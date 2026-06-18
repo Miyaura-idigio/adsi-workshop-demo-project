@@ -1,0 +1,18 @@
+{
+  "name": "attendance-demo",
+  "private": true,
+  "scripts": {
+    "boot": "cd packages/backend && ./gradlew bootRun",
+    "dev": "cd packages/frontend && npm run dev",
+    "build:backend": "cd packages/backend && ./gradlew bootJar",
+    "build:frontend": "cd packages/frontend && npm run build",
+    "check:backend": "cd packages/backend && ./gradlew check",
+    "lint:frontend": "cd packages/frontend && npm run lint",
+    "test:backend": "cd packages/backend && ./gradlew test",
+    "db:up": "cd packages/backend && docker compose up -d",
+    "db:down": "cd packages/backend && docker compose down",
+    "deploy:dev": "cd packages/infra && npx cdk deploy --context env=dev",
+    "deploy:prod": "cd packages/infra && npx cdk deploy --context env=prod",
+    "synth": "cd packages/infra && npx cdk synth --context env=dev"
+  }
+}
