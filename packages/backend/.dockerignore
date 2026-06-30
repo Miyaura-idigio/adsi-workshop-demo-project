@@ -1,0 +1,8 @@
+.gradle
+build
+bin
+*.iml
+.idea
+.vscode
+.env
+.env.local

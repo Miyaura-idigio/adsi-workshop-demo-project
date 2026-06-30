@@ -108,22 +108,14 @@ export class AttendanceStack extends cdk.Stack {
         DB_HOST: dbCluster.clusterEndpoint.hostname,
         DB_PORT: dbCluster.clusterEndpoint.port.toString(),
         DB_NAME: "attendance",
+        // TODO: 初回デプロイ後に CloudFront ドメインに差し替える（循環参照で CDK 内では解決不可）
         CORS_ALLOWED_ORIGINS: "*",
       },
       secrets: {
         DB_USERNAME: ecs.Secret.fromSecretsManager(dbSecret, "username"),
         DB_PASSWORD: ecs.Secret.fromSecretsManager(dbSecret, "password"),
       },
-      healthCheck: {
-        command: [
-          "CMD-SHELL",
-          "curl -f http://localhost:8080/actuator/health || exit 1",
-        ],
-        interval: cdk.Duration.seconds(30),
-        timeout: cdk.Duration.seconds(5),
-        retries: 3,
-        startPeriod: cdk.Duration.seconds(60),
-      },
+      // コンテナヘルスチェックは ALB ターゲットグループに委譲（JRE イメージに curl がないため）
     });
 
     container.addPortMappings({ containerPort: 8080 });
