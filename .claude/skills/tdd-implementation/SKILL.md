@@ -3,8 +3,9 @@ name: tdd-implementation
 description: Plan → 承認 → TDD(Red-Green-Refactor) で1つの Unit / 機能を実装する。設計が確定してコードを書くときに使う。
 ---
 
-# TDD 実装（AI-DLC: Construction「コードとテストを生成」）
+# TDD 実装（SDD）
 
+SDD（仕様駆動開発）の実装工程（参照モデル AI-DLC の「コードとテストを生成」）。
 **承認ゲート付き TDD** で実装する。人間が Plan を承認してから実装に入る。
 
 ## いつ使う

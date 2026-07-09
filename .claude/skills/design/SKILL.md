@@ -3,8 +3,9 @@ name: design
 description: 基本設計フェーズ。ドメインモデル・DB・API・画面を設計ドキュメント化する。要求確定後、実装や作業分割の前に使う。
 ---
 
-# 設計フェーズ（AI-DLC: Construction 入口）
+# 設計フェーズ（SDD）
 
+SDD（仕様駆動開発）の設計工程（参照モデル AI-DLC の Construction 入口）。
 確定した要求をもとに **「どう作るか」** を設計する。ライト DDD。
 
 ## いつ使う

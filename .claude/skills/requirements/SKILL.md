@@ -3,9 +3,10 @@ name: requirements
 description: 要求仕様（要件定義）フェーズ。ユーザーストーリーの詳述と [Question]/[Answer] による曖昧さ解消。新規プロダクト・新機能の着手時、要件が曖昧なときに使う。
 ---
 
-# 要求仕様フェーズ（AI-DLC: Inception）
+# 要求仕様フェーズ（SDD）
 
-AI-DLC の Inception。**「何を作るか」** をユーザーストーリーと Q&A で確定する。
+SDD（仕様駆動開発）の最初の工程（参照モデル AI-DLC の Inception に対応）。
+**「何を作るか」** をユーザーストーリーと Q&A で確定する。
 
 ## いつ使う
 

@@ -39,9 +39,12 @@
 | `skills/` | どう進めるか | 要求 / 設計 / 分割 / TDD / レビュー手順 |
 | `agents/` | subagent の専門性 | java-reviewer 等 |
 
-## ワークショップの流れ（AI-DLC ベース）
+## ワークショップの流れ（SDD ベース）
 
-全体像は `rules/common/development-process.md`。工程ごとにスキルを使う。
+看板は **SDD（仕様駆動開発）**＝仕様（要求 → 設計）を先に固めてから実装する。
+参照モデルは AWS の AI-DLC。全体像は `rules/common/development-process.md`。
+
+**進め方**: 前半は参加者が**自分でプロンプトを入力**して体験し、後半で**スキルを明示的に呼び出して**効率化する。各工程に対応するスキル:
 
 1. **要求仕様** — `skills/requirements/SKILL.md`（ユーザーストーリー、[Question]/[Answer]）
 2. **設計** — `skills/design/SKILL.md`（ドメイン / DB / API）

@@ -3,8 +3,9 @@ name: work-decomposition
 description: 設計を独立実装可能な Unit of Work / ドメインに分割する。大機能・プロダクト全体を複数タスクに分解するとき、docs/units/ を作るときに使う。
 ---
 
-# 作業分割（AI-DLC: Inception「作業単位に計画」）
+# 作業分割（SDD）
 
+SDD（仕様駆動開発）の作業分割工程（参照モデル AI-DLC の「作業単位に計画」）。
 設計を **Bounded Context 相当の凝集した Unit** に分ける。Unit 間の依存を明示し、並列実装できる形にする。
 
 ## いつ使う

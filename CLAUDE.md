@@ -12,13 +12,15 @@
 | SageMaker プレビュー設定 | `.claude/skills/sagemaker-code-editor/SKILL.md` |
 | SageMaker から AWS デプロイ | `.claude/skills/sagemaker-aws-deploy/SKILL.md` |
 | コーディング規約 | `.claude/rules/` |
-| 開発の全体像（AI-DLC） | `.claude/rules/common/development-process.md` |
+| 開発の全体像（SDD / 仕様駆動開発） | `.claude/rules/common/development-process.md` |
 | Issue 運用（要求/設計の永続化） | `.claude/rules/common/issue-workflow.md` |
 | 要求仕様 | `.claude/skills/requirements/SKILL.md` |
 | 設計 | `.claude/skills/design/SKILL.md` |
 | 作業分割（UoW） | `.claude/skills/work-decomposition/SKILL.md` |
 | TDD 実装 | `.claude/skills/tdd-implementation/SKILL.md` |
 | コードレビュー | `.claude/skills/multi-agent-review/SKILL.md` |
+
+> **スキルの起動方針（ワークショップ）**: SDD 工程スキル（`requirements` / `design` / `work-decomposition` / `tdd-implementation`）は **明示的に指定されたときのみ** 使用し、**自動では起動しない**。前半は参加者が自分でプロンプトを入力して各工程を体験し、後半で必要に応じてスキル名を指定して呼び出す。
 
 ### SageMaker クイックリファレンス
 
