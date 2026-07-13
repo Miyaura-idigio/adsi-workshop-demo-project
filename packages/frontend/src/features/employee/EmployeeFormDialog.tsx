@@ -47,6 +47,11 @@ const INITIAL_FORM: FormState = {
   hireDate: "",
 };
 
+const ROLE_ITEMS: Record<string, string> = {
+  EMPLOYEE: "一般",
+  ADMIN: "管理者",
+};
+
 export function EmployeeFormDialog({
   open,
   onOpenChange,
@@ -97,6 +102,10 @@ export function EmployeeFormDialog({
   };
 
   const title = mode === "create" ? "社員登録" : "社員編集";
+  const departmentItems = departments.reduce(
+    (acc, dept) => ({ ...acc, [dept.id]: dept.name }),
+    {} as Record<string, string>,
+  );
 
   return (
     <FormDialog
@@ -147,7 +156,7 @@ export function EmployeeFormDialog({
           <Select
             value={form.departmentId || null}
             onValueChange={(value) => setForm({ ...form, departmentId: value ?? "" })}
-            items={departments.reduce((acc, dept) => ({ ...acc, [dept.id]: dept.name }), {} as Record<string, string>)}
+            items={departmentItems}
           >
             <SelectTrigger>
               <SelectValue placeholder="部署を選択" />
@@ -172,14 +181,17 @@ export function EmployeeFormDialog({
                 role: (value as "ADMIN" | "EMPLOYEE") ?? "EMPLOYEE",
               })
             }
-            items={{ EMPLOYEE: "一般", ADMIN: "管理者" }}
+            items={ROLE_ITEMS}
           >
             <SelectTrigger>
               <SelectValue placeholder="ロールを選択" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="EMPLOYEE">一般</SelectItem>
-              <SelectItem value="ADMIN">管理者</SelectItem>
+              {Object.entries(ROLE_ITEMS).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
