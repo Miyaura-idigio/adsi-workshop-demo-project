@@ -51,15 +51,23 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     @Transactional
     public AttendanceRecordResponse clockIn(UUID employeeId) {
+        return clockIn(employeeId, null);
+    }
+
+    @Override
+    @Transactional
+    public AttendanceRecordResponse clockIn(UUID employeeId, String memo) {
         var employee = findEmployeeOrThrow(employeeId);
         var today = LocalDate.now(clock);
 
         var now = Instant.now(clock);
+        var normalizedMemo = normalizeMemo(memo);
         var record = AttendanceRecord.builder()
                 .id(UuidCreator.getTimeOrderedEpoch())
                 .employee(employee)
                 .workDate(today)
                 .clockIn(now)
+                .clockInMemo(normalizedMemo)
                 .corrected(false)
                 .build();
 
@@ -71,13 +79,52 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     @Transactional
     public AttendanceRecordResponse clockOut(UUID employeeId) {
+        return clockOut(employeeId, null);
+    }
+
+    @Override
+    @Transactional
+    public AttendanceRecordResponse clockOut(UUID employeeId, String memo) {
         var today = LocalDate.now(clock);
         var record = attendanceRepository.findByEmployeeIdAndWorkDateAndClockOutIsNull(employeeId, today)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "No active clock-in found"));
 
+        var normalizedMemo = normalizeMemo(memo);
         record.setClockOut(Instant.now(clock));
+        record.setClockOutMemo(normalizedMemo);
         var saved = attendanceRepository.save(record);
         log.info("Clock-out recorded for employee={} at={}", employeeId, saved.getClockOut());
+        return AttendanceRecordResponse.from(saved);
+    }
+
+    @Override
+    @Transactional
+    public AttendanceRecordResponse updateMemo(UUID recordId, UUID employeeId, String type, String memo) {
+        var record = attendanceRepository.findById(recordId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Record not found"));
+
+        if (!record.getEmployee().getId().equals(employeeId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot edit another employee's memo");
+        }
+
+        var currentYearMonth = YearMonth.now(clock);
+        var recordYearMonth = YearMonth.from(record.getWorkDate());
+        if (!recordYearMonth.equals(currentYearMonth)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can only edit memos for the current month");
+        }
+
+        var normalizedMemo = normalizeMemo(memo);
+        var now = Instant.now(clock);
+
+        if ("CLOCK_IN".equals(type)) {
+            record.setClockInMemo(normalizedMemo);
+            record.setClockInMemoUpdatedAt(now);
+        } else if ("CLOCK_OUT".equals(type)) {
+            record.setClockOutMemo(normalizedMemo);
+            record.setClockOutMemoUpdatedAt(now);
+        }
+
+        var saved = attendanceRepository.save(record);
         return AttendanceRecordResponse.from(saved);
     }
 
@@ -219,6 +266,13 @@ public class AttendanceServiceImpl implements AttendanceService {
             date = date.plusDays(1);
         }
         return count;
+    }
+
+    private String normalizeMemo(String memo) {
+        if (memo == null || memo.isBlank()) {
+            return null;
+        }
+        return memo;
     }
 
     private Employee findEmployeeOrThrow(UUID employeeId) {

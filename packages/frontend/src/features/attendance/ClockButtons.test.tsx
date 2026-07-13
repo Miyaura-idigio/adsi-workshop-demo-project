@@ -113,4 +113,60 @@ describe("ClockButtons", () => {
       expect(mockClockOut).not.toHaveBeenCalled();
     });
   });
+
+  describe("メモ入力欄", () => {
+    it("打刻ボタンの近くにメモ入力欄が表示される", () => {
+      setupMocks({ status: "NOT_CLOCKED_IN" });
+      const { container } = render(<ClockButtons />);
+      const view = within(container);
+
+      expect(view.getByPlaceholderText("メモ（任意・100文字以内）")).toBeInTheDocument();
+    });
+
+    it("メモを入力して出勤ボタンを押すとメモ付きでclockInが呼ばれる", async () => {
+      setupMocks({ status: "NOT_CLOCKED_IN" });
+      const { container } = render(<ClockButtons />);
+      const view = within(container);
+
+      const memoInput = view.getByPlaceholderText("メモ（任意・100文字以内）");
+      await userEvent.type(memoInput, "電車遅延");
+      await userEvent.click(view.getByRole("button", { name: /出勤/ }));
+
+      expect(mockClockIn).toHaveBeenCalledWith("電車遅延");
+    });
+
+    it("メモ未入力で出勤ボタンを押すと空文字なしでclockInが呼ばれる", async () => {
+      setupMocks({ status: "NOT_CLOCKED_IN" });
+      const { container } = render(<ClockButtons />);
+      const view = within(container);
+
+      await userEvent.click(view.getByRole("button", { name: /出勤/ }));
+
+      expect(mockClockIn).toHaveBeenCalledWith(undefined);
+    });
+
+    it("メモを入力して退勤ボタンを押すとメモ付きでclockOutが呼ばれる", async () => {
+      setupMocks({ status: "CLOCKED_IN" });
+      const { container } = render(<ClockButtons />);
+      const view = within(container);
+
+      const memoInput = view.getByPlaceholderText("メモ（任意・100文字以内）");
+      await userEvent.type(memoInput, "早退：体調不良");
+      await userEvent.click(view.getByRole("button", { name: /退勤/ }));
+
+      expect(mockClockOut).toHaveBeenCalledWith("早退：体調不良");
+    });
+
+    it("メモが100文字を超えて入力できない", async () => {
+      setupMocks({ status: "NOT_CLOCKED_IN" });
+      const { container } = render(<ClockButtons />);
+      const view = within(container);
+
+      const memoInput = view.getByPlaceholderText("メモ（任意・100文字以内）") as HTMLInputElement;
+      const longText = "あ".repeat(150);
+      await userEvent.type(memoInput, longText);
+
+      expect(memoInput.value.length).toBeLessThanOrEqual(100);
+    });
+  });
 });

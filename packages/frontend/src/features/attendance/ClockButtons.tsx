@@ -48,6 +48,7 @@ export function ClockButtons() {
   const { data: todayStatus, isLoading } = useTodayStatus();
   const clockInMutation = useClockIn();
   const clockOutMutation = useClockOut();
+  const [memo, setMemo] = useState("");
 
   if (isLoading) {
     return (
@@ -80,11 +81,24 @@ export function ClockButtons() {
           </span>
         )}
       </div>
+      <div className="max-w-md mx-auto">
+        <input
+          type="text"
+          value={memo}
+          onChange={(e) => setMemo(e.target.value.slice(0, 100))}
+          maxLength={100}
+          placeholder="メモ（任意・100文字以内）"
+          className="w-full rounded-md border px-3 py-2 text-sm mb-4"
+        />
+      </div>
       <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
         <button
           type="button"
           disabled={!canClockIn || isPending}
-          onClick={() => clockInMutation.mutate()}
+          onClick={() => {
+            clockInMutation.mutate(memo || undefined);
+            setMemo("");
+          }}
           className="flex flex-col items-center justify-center gap-2 rounded-xl bg-orange-500 py-8 text-white transition-colors hover:bg-orange-600 active:bg-orange-700 disabled:bg-gray-200 disabled:text-gray-400"
         >
           <LogIn className="h-8 w-8" />
@@ -93,7 +107,10 @@ export function ClockButtons() {
         <button
           type="button"
           disabled={!canClockOut || isPending}
-          onClick={() => clockOutMutation.mutate()}
+          onClick={() => {
+            clockOutMutation.mutate(memo || undefined);
+            setMemo("");
+          }}
           className="flex flex-col items-center justify-center gap-2 rounded-xl bg-blue-500 py-8 text-white transition-colors hover:bg-blue-600 active:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400"
         >
           <LogOut className="h-8 w-8" />
