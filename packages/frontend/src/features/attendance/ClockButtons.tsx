@@ -85,7 +85,7 @@ export function ClockButtons() {
           type="button"
           disabled={!canClockIn || isPending}
           onClick={() => clockInMutation.mutate()}
-          className="flex flex-col items-center justify-center gap-2 rounded-xl bg-blue-500 py-8 text-white transition-colors hover:bg-blue-600 active:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400"
+          className="flex flex-col items-center justify-center gap-2 rounded-xl bg-orange-500 py-8 text-white transition-colors hover:bg-orange-600 active:bg-orange-700 disabled:bg-gray-200 disabled:text-gray-400"
         >
           <LogIn className="h-8 w-8" />
           <span className="text-lg font-bold">出勤</span>
