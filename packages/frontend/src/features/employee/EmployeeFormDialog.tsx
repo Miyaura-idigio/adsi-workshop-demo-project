@@ -102,9 +102,8 @@ export function EmployeeFormDialog({
   };
 
   const title = mode === "create" ? "社員登録" : "社員編集";
-  const departmentItems = departments.reduce(
-    (acc, dept) => ({ ...acc, [dept.id]: dept.name }),
-    {} as Record<string, string>,
+  const departmentItems: Record<string, string> = Object.fromEntries(
+    departments.map((dept) => [dept.id, dept.name]),
   );
 
   return (
