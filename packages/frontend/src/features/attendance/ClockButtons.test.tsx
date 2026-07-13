@@ -1,5 +1,6 @@
 import { render, within } from "@testing-library/react";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { ClockButtons } from "./ClockButtons";
 import { useClockIn, useClockOut, useTodayStatus } from "./useAttendance";
 
@@ -9,13 +10,16 @@ vi.mock("./useAttendance", () => ({
   useClockOut: vi.fn(),
 }));
 
-const mockMutate = vi.fn();
+const mockClockIn = vi.fn();
+const mockClockOut = vi.fn();
 
-function setupMocks(overrides: {
-  status?: "NOT_CLOCKED_IN" | "CLOCKED_IN" | "CLOCKED_OUT";
-  isLoading?: boolean;
-  isPending?: boolean;
-} = {}) {
+function setupMocks(
+  overrides: {
+    status?: "NOT_CLOCKED_IN" | "CLOCKED_IN" | "CLOCKED_OUT";
+    isLoading?: boolean;
+    isPending?: boolean;
+  } = {},
+) {
   const { status = "NOT_CLOCKED_IN", isLoading = false, isPending = false } = overrides;
 
   (useTodayStatus as Mock).mockReturnValue({
@@ -23,11 +27,11 @@ function setupMocks(overrides: {
     isLoading,
   });
   (useClockIn as Mock).mockReturnValue({
-    mutate: mockMutate,
+    mutate: mockClockIn,
     isPending,
   });
   (useClockOut as Mock).mockReturnValue({
-    mutate: mockMutate,
+    mutate: mockClockOut,
     isPending,
   });
 }
@@ -72,6 +76,41 @@ describe("ClockButtons", () => {
 
       expect(view.getByRole("button", { name: /出勤/ })).toBeDisabled();
       expect(view.getByRole("button", { name: /退勤/ })).toBeDisabled();
+    });
+  });
+
+  describe("ボタンクリック時の動作", () => {
+    it("未出勤で出勤ボタンを押すとclockIn mutateが呼ばれる", async () => {
+      setupMocks({ status: "NOT_CLOCKED_IN" });
+      const { container } = render(<ClockButtons />);
+      const view = within(container);
+
+      await userEvent.click(view.getByRole("button", { name: /出勤/ }));
+
+      expect(mockClockIn).toHaveBeenCalledTimes(1);
+      expect(mockClockOut).not.toHaveBeenCalled();
+    });
+
+    it("勤務中で退勤ボタンを押すとclockOut mutateが呼ばれる", async () => {
+      setupMocks({ status: "CLOCKED_IN" });
+      const { container } = render(<ClockButtons />);
+      const view = within(container);
+
+      await userEvent.click(view.getByRole("button", { name: /退勤/ }));
+
+      expect(mockClockOut).toHaveBeenCalledTimes(1);
+      expect(mockClockIn).not.toHaveBeenCalled();
+    });
+
+    it("無効状態のボタンをクリックしてもmutateが呼ばれない", async () => {
+      setupMocks({ status: "NOT_CLOCKED_IN" });
+      const { container } = render(<ClockButtons />);
+      const view = within(container);
+
+      await userEvent.click(view.getByRole("button", { name: /退勤/ }));
+
+      expect(mockClockIn).not.toHaveBeenCalled();
+      expect(mockClockOut).not.toHaveBeenCalled();
     });
   });
 });
