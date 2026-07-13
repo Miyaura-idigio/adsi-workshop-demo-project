@@ -1,8 +1,6 @@
-package com.example.attendance.attendance.entity;
+package com.example.attendance.leave.entity;
 
 import com.example.attendance.employee.entity.Employee;
-import com.example.attendance.leave.entity.DayType;
-import com.example.attendance.leave.entity.LeaveType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -27,54 +25,48 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "attendance_records")
+@Table(name = "leave_requests")
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AttendanceRecord {
+public class LeaveRequest {
 
     @Id
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employee_id", nullable = false)
-    private Employee employee;
+    @JoinColumn(name = "requester_id", nullable = false)
+    private Employee requester;
 
-    @Column(nullable = false)
-    private LocalDate workDate;
-
-    @Column(nullable = false)
-    private Instant clockIn;
-
-    private Instant clockOut;
-
-    @Column(length = 100)
-    private String clockInMemo;
-
-    @Column(length = 100)
-    private String clockOutMemo;
-
-    private Instant clockInMemoUpdatedAt;
-
-    private Instant clockOutMemoUpdatedAt;
-
-    @Column(nullable = false)
-    @Builder.Default
-    private boolean corrected = false;
-
-    @Column(nullable = false)
-    @Builder.Default
-    private boolean paidLeave = false;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approver_id")
+    private Employee approver;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
+    @Column(nullable = false, length = 20)
     private LeaveType leaveType;
 
+    @Column(nullable = false)
+    private LocalDate startDate;
+
+    @Column(nullable = false)
+    private LocalDate endDate;
+
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
+    @Column(nullable = false, length = 20)
     private DayType dayType;
+
+    @Column(length = 500)
+    private String reason;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private LeaveStatus status;
+
+    @Column(length = 500)
+    private String rejectReason;
 
     @Version
     private Long version;
