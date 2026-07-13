@@ -97,6 +97,15 @@ export function fetchTeamAttendance(
   );
 }
 
+export function fetchMemberHistory(
+  employeeId: string,
+  month: string,
+): Promise<AttendanceHistoryResponse> {
+  return apiClient.get<AttendanceHistoryResponse>(
+    `/api/attendance/team/${employeeId}/history?month=${month}`,
+  );
+}
+
 export function fetchAllAttendance(
   month: string,
   departmentId?: string,

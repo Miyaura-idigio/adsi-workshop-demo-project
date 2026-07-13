@@ -34,18 +34,23 @@ export function TodayRecords() {
       <h3 className="text-sm font-medium mb-3">本日の打刻記録</h3>
       <div className="space-y-2">
         {records.map((record) => (
-          <div
-            key={record.id}
-            className="flex items-center justify-between text-sm py-1.5 border-b last:border-b-0"
-          >
-            <div className="flex items-center gap-3">
-              <span className="font-medium">{formatTime(record.clockIn)}</span>
-              <span className="text-muted-foreground">~</span>
-              <span className="font-medium">
-                {record.clockOut ? formatTime(record.clockOut) : "--:--"}
-              </span>
+          <div key={record.id} className="text-sm py-1.5 border-b last:border-b-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="font-medium">{formatTime(record.clockIn)}</span>
+                <span className="text-muted-foreground">~</span>
+                <span className="font-medium">
+                  {record.clockOut ? formatTime(record.clockOut) : "--:--"}
+                </span>
+              </div>
+              {record.corrected && <Badge variant="outline">修正済み</Badge>}
             </div>
-            {record.corrected && <Badge variant="outline">修正済み</Badge>}
+            {(record.clockInMemo || record.clockOutMemo) && (
+              <div className="mt-1 text-xs text-muted-foreground space-y-0.5">
+                {record.clockInMemo && <p>出勤: {record.clockInMemo}</p>}
+                {record.clockOutMemo && <p>退勤: {record.clockOutMemo}</p>}
+              </div>
+            )}
           </div>
         ))}
       </div>

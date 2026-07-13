@@ -7,13 +7,16 @@ import {
   clockIn,
   clockOut,
   fetchHistory,
+  fetchMemberHistory,
   fetchTeamAttendance,
   fetchTodayStatus,
+  updateMemo,
 } from "./attendance-api";
 
 const TODAY_STATUS_KEY = ["attendance", "today"] as const;
 const HISTORY_KEY = ["attendance", "history"] as const;
 const TEAM_KEY = ["attendance", "team"] as const;
+const MEMBER_HISTORY_KEY = ["attendance", "member-history"] as const;
 
 export function useTodayStatus() {
   const { user } = useAuth();
@@ -71,5 +74,28 @@ export function useTeamAttendance(month: string) {
     queryKey: [...TEAM_KEY, user?.id, month],
     queryFn: () => fetchTeamAttendance(user!.id, month),
     enabled: !!user?.isManager && !!month,
+  });
+}
+
+export function useUpdateMemo() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: { recordId: string; type: "CLOCK_IN" | "CLOCK_OUT"; memo: string }) =>
+      updateMemo(params.recordId, user!.id, params.type, params.memo),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TODAY_STATUS_KEY });
+      queryClient.invalidateQueries({ queryKey: HISTORY_KEY });
+      toast.success("メモを更新しました");
+    },
+  });
+}
+
+export function useMemberHistory(employeeId: string, month: string) {
+  return useQuery({
+    queryKey: [...MEMBER_HISTORY_KEY, employeeId, month],
+    queryFn: () => fetchMemberHistory(employeeId, month),
+    enabled: !!employeeId && !!month,
   });
 }
