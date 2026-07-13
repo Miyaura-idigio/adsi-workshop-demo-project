@@ -484,5 +484,47 @@ class AttendanceServiceTest {
             // Assert
             assertThat(result.clockInMemo()).isNull();
         }
+
+        @Test
+        @DisplayName("不正なtypeを指定すると400エラー")
+        void updateMemo_invalidType_throwsBadRequest() {
+            // Arrange
+            var recordId = UUID.randomUUID();
+            var record = AttendanceRecord.builder()
+                    .id(recordId)
+                    .employee(employee)
+                    .workDate(TODAY_TOKYO)
+                    .clockIn(Instant.parse("2025-01-14T23:00:00Z"))
+                    .build();
+            when(attendanceRepository.findById(recordId)).thenReturn(Optional.of(record));
+
+            // Act & Assert
+            assertThatThrownBy(() -> service.updateMemo(recordId, employee.getId(), "INVALID", "メモ"))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .hasMessageContaining("400");
+        }
+    }
+
+    @Nested
+    @DisplayName("メモ正規化")
+    class NormalizeMemo {
+
+        @Test
+        @DisplayName("101文字のメモは100文字に切り詰められる")
+        void clockIn_withLongMemo_truncatesTo100() {
+            // Arrange
+            when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+            when(attendanceRepository.save(any(AttendanceRecord.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+            var longMemo = "あ".repeat(101);
+
+            // Act
+            var result = service.clockIn(employee.getId(), longMemo);
+
+            // Assert
+            var captor = ArgumentCaptor.forClass(AttendanceRecord.class);
+            verify(attendanceRepository).save(captor.capture());
+            assertThat(captor.getValue().getClockInMemo()).hasSize(100);
+        }
     }
 }

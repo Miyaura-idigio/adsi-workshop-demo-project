@@ -168,5 +168,17 @@ describe("ClockButtons", () => {
 
       expect(memoInput.value.length).toBeLessThanOrEqual(100);
     });
+
+    it("打刻成功後にメモ入力欄がクリアされる", async () => {
+      setupMocks({ status: "NOT_CLOCKED_IN" });
+      const { container } = render(<ClockButtons />);
+      const view = within(container);
+
+      const memoInput = view.getByPlaceholderText("メモ（任意・100文字以内）") as HTMLInputElement;
+      await userEvent.type(memoInput, "テストメモ");
+      await userEvent.click(view.getByRole("button", { name: /出勤/ }));
+
+      expect(memoInput.value).toBe("");
+    });
   });
 });

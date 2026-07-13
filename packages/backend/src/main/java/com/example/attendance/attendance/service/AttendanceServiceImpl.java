@@ -122,6 +122,8 @@ public class AttendanceServiceImpl implements AttendanceService {
         } else if ("CLOCK_OUT".equals(type)) {
             record.setClockOutMemo(normalizedMemo);
             record.setClockOutMemoUpdatedAt(now);
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid type: " + type);
         }
 
         var saved = attendanceRepository.save(record);
@@ -272,7 +274,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         if (memo == null || memo.isBlank()) {
             return null;
         }
-        return memo;
+        return memo.length() > 100 ? memo.substring(0, 100) : memo;
     }
 
     private Employee findEmployeeOrThrow(UUID employeeId) {
