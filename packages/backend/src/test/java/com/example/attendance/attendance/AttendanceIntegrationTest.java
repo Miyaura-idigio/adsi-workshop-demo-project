@@ -108,7 +108,8 @@ class AttendanceIntegrationTest {
         mockMvc.perform(post("/api/attendance/clock-in")
                 .session(employeeSession)
                 .with(csrf())
-                .param("employeeId", employeeId.toString()))
+                .contentType(APPLICATION_JSON)
+                .content("{\"employeeId\":\"%s\"}".formatted(employeeId)))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.workDate").exists())
             .andExpect(jsonPath("$.clockIn").exists())
@@ -121,13 +122,15 @@ class AttendanceIntegrationTest {
         mockMvc.perform(post("/api/attendance/clock-in")
                 .session(employeeSession)
                 .with(csrf())
-                .param("employeeId", employeeId.toString()))
+                .contentType(APPLICATION_JSON)
+                .content("{\"employeeId\":\"%s\"}".formatted(employeeId)))
             .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/attendance/clock-out")
                 .session(employeeSession)
                 .with(csrf())
-                .param("employeeId", employeeId.toString()))
+                .contentType(APPLICATION_JSON)
+                .content("{\"employeeId\":\"%s\"}".formatted(employeeId)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.clockOut").exists());
     }
@@ -138,7 +141,8 @@ class AttendanceIntegrationTest {
         mockMvc.perform(post("/api/attendance/clock-out")
                 .session(employeeSession)
                 .with(csrf())
-                .param("employeeId", employeeId.toString()))
+                .contentType(APPLICATION_JSON)
+                .content("{\"employeeId\":\"%s\"}".formatted(employeeId)))
             .andExpect(status().isConflict());
     }
 
@@ -148,19 +152,22 @@ class AttendanceIntegrationTest {
         mockMvc.perform(post("/api/attendance/clock-in")
                 .session(employeeSession)
                 .with(csrf())
-                .param("employeeId", employeeId.toString()))
+                .contentType(APPLICATION_JSON)
+                .content("{\"employeeId\":\"%s\"}".formatted(employeeId)))
             .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/attendance/clock-out")
                 .session(employeeSession)
                 .with(csrf())
-                .param("employeeId", employeeId.toString()))
+                .contentType(APPLICATION_JSON)
+                .content("{\"employeeId\":\"%s\"}".formatted(employeeId)))
             .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/attendance/clock-in")
                 .session(employeeSession)
                 .with(csrf())
-                .param("employeeId", employeeId.toString()))
+                .contentType(APPLICATION_JSON)
+                .content("{\"employeeId\":\"%s\"}".formatted(employeeId)))
             .andExpect(status().isCreated());
     }
 
@@ -181,7 +188,8 @@ class AttendanceIntegrationTest {
         mockMvc.perform(post("/api/attendance/clock-in")
                 .session(employeeSession)
                 .with(csrf())
-                .param("employeeId", employeeId.toString()))
+                .contentType(APPLICATION_JSON)
+                .content("{\"employeeId\":\"%s\"}".formatted(employeeId)))
             .andExpect(status().isCreated());
 
         mockMvc.perform(get("/api/attendance/today")
@@ -198,13 +206,15 @@ class AttendanceIntegrationTest {
         mockMvc.perform(post("/api/attendance/clock-in")
                 .session(employeeSession)
                 .with(csrf())
-                .param("employeeId", employeeId.toString()))
+                .contentType(APPLICATION_JSON)
+                .content("{\"employeeId\":\"%s\"}".formatted(employeeId)))
             .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/attendance/clock-out")
                 .session(employeeSession)
                 .with(csrf())
-                .param("employeeId", employeeId.toString()))
+                .contentType(APPLICATION_JSON)
+                .content("{\"employeeId\":\"%s\"}".formatted(employeeId)))
             .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/attendance/today")
@@ -221,13 +231,15 @@ class AttendanceIntegrationTest {
         mockMvc.perform(post("/api/attendance/clock-in")
                 .session(employeeSession)
                 .with(csrf())
-                .param("employeeId", employeeId.toString()))
+                .contentType(APPLICATION_JSON)
+                .content("{\"employeeId\":\"%s\"}".formatted(employeeId)))
             .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/attendance/clock-out")
                 .session(employeeSession)
                 .with(csrf())
-                .param("employeeId", employeeId.toString()))
+                .contentType(APPLICATION_JSON)
+                .content("{\"employeeId\":\"%s\"}".formatted(employeeId)))
             .andExpect(status().isOk());
 
         var currentMonth = YearMonth.now().toString();
@@ -284,7 +296,8 @@ class AttendanceIntegrationTest {
     void clockIn_unauthenticated_returns401() throws Exception {
         mockMvc.perform(post("/api/attendance/clock-in")
                 .with(csrf())
-                .param("employeeId", employeeId.toString()))
+                .contentType(APPLICATION_JSON)
+                .content("{\"employeeId\":\"%s\"}".formatted(employeeId)))
             .andExpect(status().isUnauthorized());
     }
 

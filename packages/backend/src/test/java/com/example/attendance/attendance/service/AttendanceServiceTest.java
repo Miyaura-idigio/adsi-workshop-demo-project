@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
@@ -246,6 +247,284 @@ class AttendanceServiceTest {
             assertThat(result.days().get(0).totalWorkMinutes()).isEqualTo(540);
             assertThat(result.summary().workDays()).isEqualTo(2);
             assertThat(result.summary().absentDays()).isEqualTo(21);
+        }
+    }
+
+    @Nested
+    @DisplayName("メモ付き出勤打刻")
+    class ClockInWithMemo {
+
+        @Test
+        @DisplayName("メモ付きで出勤打刻するとメモが保存される")
+        void clockIn_withMemo_savesMemo() {
+            // Arrange
+            when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+            when(attendanceRepository.save(any(AttendanceRecord.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+
+            // Act
+            var result = service.clockIn(employee.getId(), "電車遅延");
+
+            // Assert
+            assertThat(result.clockInMemo()).isEqualTo("電車遅延");
+
+            var captor = ArgumentCaptor.forClass(AttendanceRecord.class);
+            verify(attendanceRepository).save(captor.capture());
+            assertThat(captor.getValue().getClockInMemo()).isEqualTo("電車遅延");
+        }
+
+        @Test
+        @DisplayName("メモなし（null）で出勤打刻するとメモはnull")
+        void clockIn_withNullMemo_savesNullMemo() {
+            // Arrange
+            when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+            when(attendanceRepository.save(any(AttendanceRecord.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+
+            // Act
+            var result = service.clockIn(employee.getId(), null);
+
+            // Assert
+            assertThat(result.clockInMemo()).isNull();
+        }
+
+        @Test
+        @DisplayName("空文字メモはnullとして保存される")
+        void clockIn_withEmptyMemo_savesAsNull() {
+            // Arrange
+            when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+            when(attendanceRepository.save(any(AttendanceRecord.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+
+            // Act
+            var result = service.clockIn(employee.getId(), "");
+
+            // Assert
+            assertThat(result.clockInMemo()).isNull();
+
+            var captor = ArgumentCaptor.forClass(AttendanceRecord.class);
+            verify(attendanceRepository).save(captor.capture());
+            assertThat(captor.getValue().getClockInMemo()).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("メモ付き退勤打刻")
+    class ClockOutWithMemo {
+
+        @Test
+        @DisplayName("メモ付きで退勤打刻するとメモが保存される")
+        void clockOut_withMemo_savesMemo() {
+            // Arrange
+            var openRecord = AttendanceRecord.builder()
+                    .id(UUID.randomUUID())
+                    .employee(employee)
+                    .workDate(TODAY_TOKYO)
+                    .clockIn(Instant.parse("2025-01-14T23:00:00Z"))
+                    .build();
+            when(attendanceRepository.findByEmployeeIdAndWorkDateAndClockOutIsNull(employee.getId(), TODAY_TOKYO))
+                    .thenReturn(Optional.of(openRecord));
+            when(attendanceRepository.save(any(AttendanceRecord.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+
+            // Act
+            var result = service.clockOut(employee.getId(), "早退：体調不良");
+
+            // Assert
+            assertThat(result.clockOutMemo()).isEqualTo("早退：体調不良");
+
+            var captor = ArgumentCaptor.forClass(AttendanceRecord.class);
+            verify(attendanceRepository).save(captor.capture());
+            assertThat(captor.getValue().getClockOutMemo()).isEqualTo("早退：体調不良");
+        }
+
+        @Test
+        @DisplayName("メモなしで退勤打刻するとメモはnull")
+        void clockOut_withNullMemo_savesNullMemo() {
+            // Arrange
+            var openRecord = AttendanceRecord.builder()
+                    .id(UUID.randomUUID())
+                    .employee(employee)
+                    .workDate(TODAY_TOKYO)
+                    .clockIn(Instant.parse("2025-01-14T23:00:00Z"))
+                    .build();
+            when(attendanceRepository.findByEmployeeIdAndWorkDateAndClockOutIsNull(employee.getId(), TODAY_TOKYO))
+                    .thenReturn(Optional.of(openRecord));
+            when(attendanceRepository.save(any(AttendanceRecord.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+
+            // Act
+            var result = service.clockOut(employee.getId(), null);
+
+            // Assert
+            assertThat(result.clockOutMemo()).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("メモ編集")
+    class UpdateMemo {
+
+        @Test
+        @DisplayName("当月のレコードの出勤メモを編集できる")
+        void updateMemo_clockIn_currentMonth_updatesSuccessfully() {
+            // Arrange
+            var recordId = UUID.randomUUID();
+            var record = AttendanceRecord.builder()
+                    .id(recordId)
+                    .employee(employee)
+                    .workDate(TODAY_TOKYO)
+                    .clockIn(Instant.parse("2025-01-14T23:00:00Z"))
+                    .clockOut(Instant.parse("2025-01-15T08:00:00Z"))
+                    .build();
+            when(attendanceRepository.findById(recordId)).thenReturn(Optional.of(record));
+            when(attendanceRepository.save(any(AttendanceRecord.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+
+            // Act
+            var result = service.updateMemo(recordId, employee.getId(), "CLOCK_IN", "修正メモ");
+
+            // Assert
+            assertThat(result.clockInMemo()).isEqualTo("修正メモ");
+            assertThat(result.clockInMemoUpdatedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("当月のレコードの退勤メモを編集できる")
+        void updateMemo_clockOut_currentMonth_updatesSuccessfully() {
+            // Arrange
+            var recordId = UUID.randomUUID();
+            var record = AttendanceRecord.builder()
+                    .id(recordId)
+                    .employee(employee)
+                    .workDate(TODAY_TOKYO)
+                    .clockIn(Instant.parse("2025-01-14T23:00:00Z"))
+                    .clockOut(Instant.parse("2025-01-15T08:00:00Z"))
+                    .build();
+            when(attendanceRepository.findById(recordId)).thenReturn(Optional.of(record));
+            when(attendanceRepository.save(any(AttendanceRecord.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+
+            // Act
+            var result = service.updateMemo(recordId, employee.getId(), "CLOCK_OUT", "退勤メモ更新");
+
+            // Assert
+            assertThat(result.clockOutMemo()).isEqualTo("退勤メモ更新");
+            assertThat(result.clockOutMemoUpdatedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("翌月以降のレコードはメモ編集不可（403）")
+        void updateMemo_pastMonth_throwsForbidden() {
+            // Arrange
+            var recordId = UUID.randomUUID();
+            var record = AttendanceRecord.builder()
+                    .id(recordId)
+                    .employee(employee)
+                    .workDate(LocalDate.of(2024, 12, 15))
+                    .clockIn(Instant.parse("2024-12-14T23:00:00Z"))
+                    .clockOut(Instant.parse("2024-12-15T08:00:00Z"))
+                    .build();
+            when(attendanceRepository.findById(recordId)).thenReturn(Optional.of(record));
+
+            // Act & Assert
+            assertThatThrownBy(() -> service.updateMemo(recordId, employee.getId(), "CLOCK_IN", "メモ"))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .hasMessageContaining("403");
+        }
+
+        @Test
+        @DisplayName("他人のレコードはメモ編集不可（403）")
+        void updateMemo_differentEmployee_throwsForbidden() {
+            // Arrange
+            var recordId = UUID.randomUUID();
+            var otherEmployee = Employee.builder()
+                    .id(UUID.randomUUID())
+                    .name("他人")
+                    .email("other@example.com")
+                    .password("hashed")
+                    .department(department)
+                    .role(Role.EMPLOYEE)
+                    .isManager(false)
+                    .hireDate(LocalDate.of(2024, 4, 1))
+                    .build();
+            var record = AttendanceRecord.builder()
+                    .id(recordId)
+                    .employee(otherEmployee)
+                    .workDate(TODAY_TOKYO)
+                    .clockIn(Instant.parse("2025-01-14T23:00:00Z"))
+                    .build();
+            when(attendanceRepository.findById(recordId)).thenReturn(Optional.of(record));
+
+            // Act & Assert
+            assertThatThrownBy(() -> service.updateMemo(recordId, employee.getId(), "CLOCK_IN", "メモ"))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .hasMessageContaining("403");
+        }
+
+        @Test
+        @DisplayName("メモを空文字で更新するとnullに戻る（削除）")
+        void updateMemo_emptyString_clearsToNull() {
+            // Arrange
+            var recordId = UUID.randomUUID();
+            var record = AttendanceRecord.builder()
+                    .id(recordId)
+                    .employee(employee)
+                    .workDate(TODAY_TOKYO)
+                    .clockIn(Instant.parse("2025-01-14T23:00:00Z"))
+                    .clockInMemo("元のメモ")
+                    .build();
+            when(attendanceRepository.findById(recordId)).thenReturn(Optional.of(record));
+            when(attendanceRepository.save(any(AttendanceRecord.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+
+            // Act
+            var result = service.updateMemo(recordId, employee.getId(), "CLOCK_IN", "");
+
+            // Assert
+            assertThat(result.clockInMemo()).isNull();
+        }
+
+        @Test
+        @DisplayName("不正なtypeを指定すると400エラー")
+        void updateMemo_invalidType_throwsBadRequest() {
+            // Arrange
+            var recordId = UUID.randomUUID();
+            var record = AttendanceRecord.builder()
+                    .id(recordId)
+                    .employee(employee)
+                    .workDate(TODAY_TOKYO)
+                    .clockIn(Instant.parse("2025-01-14T23:00:00Z"))
+                    .build();
+            when(attendanceRepository.findById(recordId)).thenReturn(Optional.of(record));
+
+            // Act & Assert
+            assertThatThrownBy(() -> service.updateMemo(recordId, employee.getId(), "INVALID", "メモ"))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .hasMessageContaining("400");
+        }
+    }
+
+    @Nested
+    @DisplayName("メモ正規化")
+    class NormalizeMemo {
+
+        @Test
+        @DisplayName("101文字のメモは100文字に切り詰められる")
+        void clockIn_withLongMemo_truncatesTo100() {
+            // Arrange
+            when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+            when(attendanceRepository.save(any(AttendanceRecord.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+            var longMemo = "あ".repeat(101);
+
+            // Act
+            var result = service.clockIn(employee.getId(), longMemo);
+
+            // Assert
+            var captor = ArgumentCaptor.forClass(AttendanceRecord.class);
+            verify(attendanceRepository).save(captor.capture());
+            assertThat(captor.getValue().getClockInMemo()).hasSize(100);
         }
     }
 }
