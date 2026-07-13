@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { type Column, DataTable } from "@/components/DataTable";
 import { MonthSelector } from "@/components/MonthSelector";
@@ -22,6 +23,11 @@ const columns: Column<TeamMemberSummaryResponse>[] = [
   {
     key: "employeeName",
     header: "社員名",
+    render: (m) => (
+      <Link href={`/team/${m.employeeId}`} className="text-blue-600 hover:underline">
+        {m.employeeName}
+      </Link>
+    ),
   },
   {
     key: "workDays",
