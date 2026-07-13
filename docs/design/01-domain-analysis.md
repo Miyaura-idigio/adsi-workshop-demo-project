@@ -11,6 +11,7 @@
 | department | 部署マスタの CRUD | Department |
 | attendance | 出退勤の打刻・勤怠履歴 | AttendanceRecord |
 | correction | 勤怠修正の申請・承認 | AttendanceCorrection |
+| leave | 有給休暇の申請・承認 | LeaveRequest |
 | report | 月次集計・帳票出力 | — (attendance, employee のデータを集計) |
 
 ---
@@ -208,6 +209,12 @@ com.example.attendance
 │   ├── repository/
 │   ├── entity/
 │   └── dto/
+├── leave/             — 有給休暇（申請・承認）
+│   ├── controller/
+│   ├── service/
+│   ├── repository/
+│   ├── entity/
+│   └── dto/
 ├── report/            — 月次集計・帳票出力
 │   ├── controller/
 │   ├── service/
@@ -223,6 +230,7 @@ com.example.attendance
 - `auth` → `employee`（認証時にユーザー情報を参照）
 - `attendance` → `employee`（打刻時に社員を参照）
 - `correction` → `employee`, `attendance`（修正申請・承認で両方参照）
+- `leave` → `employee`, `attendance`（休暇申請・承認で両方参照）
 - `report` → `employee`, `attendance`（集計で両方参照）
 - `common` ← 全ドメインから参照される
 
